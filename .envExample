@@ -1,0 +1,7 @@
+API_KEY= binance key
+API_SECRET= ninance sicret
+
+XRP_COINGECO_URL=https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd
+TETHER_COINGECO_URL=https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd
+
+NTBA_FIX_319=1
