@@ -1,5 +1,8 @@
 require('dotenv').config();
 const ccxt = require("ccxt");
+const operationService = require("./services/operatin.service")
+//const mongoose = require("./db/connect")
+
 
 const computeBuyVolume = (baseBalance, marketPrice, limitVolumeUSDT) => {
 
@@ -17,30 +20,30 @@ const computeBuyVolume = (baseBalance, marketPrice, limitVolumeUSDT) => {
 
 //=========================================================================================================
 
-const config = {
-    asset: "DOGE",
-    base: "USDT",
-    clearanceSell: 0.01,
-    clearanceBuy: 0.01,
-    tickInterval: 15000,
-    maxOrderByUSD: 10
-}
 
 
 const binanceClient = new ccxt.binance({
-    apiKey: process.env.API_KEY,
-    secret: process.env.API_SECRET,
+    apiKey: process.env.API_KEY_binance,
+    secret: process.env.API_SECRET_binance,
     options: { adjustForTimeDifference: true }
 })
+
+// const gateClient = new ccxt.gateio({
+//     apiKey: process.env.API_KEY_gate,
+//     secret: process.env.API_SECRET_gate,
+// })
+
 
 class BinanceTrader {
     constructor(tradeConfig, binanceClient) {
         this.configTrade = tradeConfig
         this.binanceClient = binanceClient
         this.market = `${tradeConfig.asset}/${tradeConfig.base}`
+        this.isCryptoTrading = !Boolean(tradeConfig.maxUsdToOrder)
         this.averageBuyPrice = 0
         this.buyAmount = 0
         this.totalSpent = 0
+        this.tickCount = 0
 
     }
 
@@ -49,36 +52,92 @@ class BinanceTrader {
     async tick() {
         while (true) {
             await this._sleep(this.configTrade.tickInterval)
-            const baseBalance = await this._getBaseBalance()
-            if(!baseBalance || baseBalance < this.configTrade.maxOrderByUSD) continue
-            this._trade()
+            this.tickCount += 1
+            await this._trade()
         }
     }
 
     //  == PRIVATE == //watchBalance 
     async _trade() {
+        const baseBalance = await this._getBaseBalance()
+
+        const assetBalance = await this._getAssetBalance()
+        const { averageBuyPrice = null, totalSpent = 0, amount = 0 } = await operationService.get(this.market)
+
+        this.averageBuyPrice = averageBuyPrice || 0
+        this.buyAmount = amount
+        this.totalSpent = totalSpent
         const currentMarketPrice = await this._getLastMarketPrice()
         if (!currentMarketPrice) return
 
-        const minBuyVolume = this._computeBuyVolume(currentMarketPrice)
+        const minBuyVolume = this.isCryptoTrading ? this._computeBuyVolume(currentMarketPrice) : this.configTrade.maxUsdToOrder
 
-        if (this.averageBuyPrice === 0) {
-            await this._buy(minBuyVolume)
+
+        console.log("AVERAGE BUY PRICE - ", this.averageBuyPrice)
+        console.log("BAY CASE ", this.market, this.averageBuyPrice - this.configTrade.clearanceBuy, " >= ", currentMarketPrice)
+        console.log("SELL CASE ", this.market, this.averageBuyPrice + this.configTrade.clearanceSell, " < ", currentMarketPrice)
+
+        //console.log(averageBuyPrice, this.averageBuyPrice, minBuyVolume)
+        if (!averageBuyPrice) {
+            await this._buy(minBuyVolume, averageBuyPrice === null)
             return
         }
+
         const priceDifference = currentMarketPrice - Number(this.averageBuyPrice)
 
         if (priceDifference > 0) {
-            if (this.averageBuyPrice + this.configTrade.clearanceSell < currentMarketPrice) {
-                console.log("SELLLL  ", this.averageBuyPrice + this.configTrade.clearanceSell, currentMarketPrice)
+            if (this.averageBuyPrice + this.configTrade.clearanceSell < currentMarketPrice && assetBalance) {
                 await this._sell(this.buyAmount)
             }
         } else {
+
+            if (this.isCryptoTrading) {
+                if (!baseBalance || baseBalance < this.configTrade.maxOrderByUSD) return
+            } else {
+                if (!baseBalance || baseBalance < currentMarketPrice * minBuyVolume) return
+            }
+
             if (this.averageBuyPrice - this.configTrade.clearanceBuy >= currentMarketPrice) {
                 await this._buy(minBuyVolume)
             }
         }
-        this._showAssetData(currentMarketPrice)
+        //this._showAssetData(currentMarketPrice)
+    }
+
+    async _sell(amount) {
+
+        try {
+            const { status } = await this.binanceClient.createMarketSellOrder(this.market, amount)
+            if (status === "closed") {
+                this._clearBuyData()
+            }
+        } catch (e) {
+            console.log("SELL || ", e.message)
+        }
+    }
+
+    async _buy(amount, isFirstTrade = false) {
+        try {
+            const { status, fee, cost } = await this.binanceClient.createMarketBuyOrder(this.market, amount)
+            if (status === "closed") {
+                this._setBuyAmounts(amount, cost, isFirstTrade)
+            }
+        } catch (e) {
+            console.log("BUY || ", e.message)
+        }
+    }
+
+    async _setBuyAmounts(buyAmount, cost, isFirstTrade) {
+        const amount = isFirstTrade ? buyAmount : this.buyAmount + buyAmount
+        const totalSpent = isFirstTrade ? cost : this.totalSpent + cost
+        const averageBuyPrice = Number((totalSpent / amount).toFixed(4))
+
+        if (isFirstTrade) {
+            await operationService.create({ pair: this.market, totalSpent, averageBuyPrice, amount, bayCount: 1 })
+            return
+        }
+
+        await operationService.update({ pair: this.market, totalSpent, averageBuyPrice, amount })
     }
 
     async _getBaseBalance() {
@@ -88,6 +147,17 @@ class BinanceTrader {
             return free ? Number(free) : null
         } catch (e) {
             console.log("BASE BALANCE || ", e.message)
+            return null
+        }
+    }
+
+    async _getAssetBalance() {
+        try {
+            const { info } = await this.binanceClient.fetchBalance({ type: 'account' })
+            const { free } = info.balances.find((item) => item.asset === this.configTrade.asset)
+            return free ? Number(free) : null
+        } catch (e) {
+            console.log("ASSET BALANCE || ", e.message)
             return null
         }
     }
@@ -114,46 +184,15 @@ class BinanceTrader {
         }
     }
 
-    async _sell(amount) {
-        try {
-            const { status } = await this.binanceClient.createMarketSellOrder(this.market, amount)
-            if (status === "closed") {
-                this._clearBuyData()
-            }
-        } catch (e) {
-            console.log("SELL || ", e.message)
-        }
-    }
-
-    async _buy(amount) {
-        try {
-            const { status, fee, price, cost } = await this.binanceClient.createMarketBuyOrder(this.market, amount)
-            if (status === "closed") {
-                this._setBuyAmounts(amount - Number(fee.cost), cost)
-            }
-        } catch (e) {
-            console.log("BUY || ", e.message)
-        }
-    }
-
-    _setAverageBuyPrice() {
-        this.averageBuyPrice = Number((this.totalSpent / this.buyAmount).toFixed(4))
-    }
-
-    _setBuyAmounts(amount, cost) {
-        this.buyAmount = this.buyAmount + amount
-        this.totalSpent = this.totalSpent + cost
-        this._setAverageBuyPrice()
-    }
-
     _sleep(time) {
         return new Promise(resolve => setTimeout(resolve, time))
     }
 
-    _clearBuyData() {
+    async _clearBuyData() {
         this.averageBuyPrice = 0
         this.buyAmount = 0
         this.totalSpent = 0
+        await operationService.reset(this.market)
     }
 
     _showAssetData(currentPrice) {
@@ -167,6 +206,28 @@ class BinanceTrader {
     }
 }
 
-const binanceTrader = new BinanceTrader(config, binanceClient)
 
-//binanceTrader.tick()
+const config = {
+    asset: "BSW",
+    base: "USDT",
+    clearanceSell: 0.08,
+    clearanceBuy: 0.02,
+    tickInterval: 15000,
+    maxOrderByUSD: 10
+}
+
+const configUAH = {
+    asset: "BUSD",
+    base: "UAH",
+    clearanceSell: 0.2,
+    clearanceBuy: 0.15,
+    tickInterval: 15000,
+    maxOrderByUSD: 10,
+    maxUsdToOrder: 10,
+}
+
+const uahTrade = new BinanceTrader(configUAH, binanceClient)
+uahTrade.tick()
+
+
+
