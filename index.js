@@ -20,8 +20,6 @@ const computeBuyVolume = (baseBalance, marketPrice, limitVolumeUSDT) => {
 
 //=========================================================================================================
 
-
-
 const binanceClient = new ccxt.binance({
     apiKey: process.env.API_KEY_binance,
     secret: process.env.API_SECRET_binance,
@@ -39,7 +37,7 @@ class BinanceTrader {
         this.configTrade = tradeConfig
         this.binanceClient = binanceClient
         this.market = `${tradeConfig.asset}/${tradeConfig.base}`
-        this.isCryptoTrading = !Boolean(tradeConfig.maxUsdToOrder)
+        this.isCryptoTrading = !Boolean(tradeConfig.maxAssetOrderByUsd)
         this.averageBuyPrice = 0
         this.buyAmount = 0
         this.totalSpent = 0
@@ -60,7 +58,6 @@ class BinanceTrader {
     //  == PRIVATE == //watchBalance 
     async _trade() {
         const baseBalance = await this._getBaseBalance()
-
         const assetBalance = await this._getAssetBalance()
         const { averageBuyPrice = null, totalSpent = 0, amount = 0 } = await operationService.get(this.market)
 
@@ -70,12 +67,12 @@ class BinanceTrader {
         const currentMarketPrice = await this._getLastMarketPrice()
         if (!currentMarketPrice) return
 
-        const minBuyVolume = this.isCryptoTrading ? this._computeBuyVolume(currentMarketPrice) : this.configTrade.maxUsdToOrder
+        const minBuyVolume = this.isCryptoTrading ? this._computeBuyVolume(currentMarketPrice) : this.configTrade.maxAssetOrderByUsd
 
-
-        console.log("AVERAGE BUY PRICE - ", this.averageBuyPrice)
+        console.log("AVERAGE BUY PRICE - ", this.averageBuyPrice, this.buyAmount)
         console.log("BAY CASE ", this.market, this.averageBuyPrice - this.configTrade.clearanceBuy, " >= ", currentMarketPrice)
         console.log("SELL CASE ", this.market, this.averageBuyPrice + this.configTrade.clearanceSell, " < ", currentMarketPrice)
+       // this._showAssetData(currentMarketPrice)
 
         //console.log(averageBuyPrice, this.averageBuyPrice, minBuyVolume)
         if (!averageBuyPrice) {
@@ -87,7 +84,8 @@ class BinanceTrader {
 
         if (priceDifference > 0) {
             if (this.averageBuyPrice + this.configTrade.clearanceSell < currentMarketPrice && assetBalance) {
-                await this._sell(this.buyAmount)
+                const amountToSell = Math.floor(assetBalance) ||  this.buyAmount
+                await this._sell(amountToSell)
             }
         } else {
 
@@ -101,7 +99,7 @@ class BinanceTrader {
                 await this._buy(minBuyVolume)
             }
         }
-        //this._showAssetData(currentMarketPrice)
+       
     }
 
     async _sell(amount) {
@@ -196,12 +194,17 @@ class BinanceTrader {
     }
 
     _showAssetData(currentPrice) {
+        var today = new Date();
+        let h = (today.getHours() < 10) ? "0" + today.getHours() : today.getHours();
+        let m = (today.getMinutes() < 10) ? "0" + today.getMinutes() : today.getMinutes();
+        let s = (today.getSeconds() < 10) ? "0" + today.getSeconds() : today.getSeconds();
         const data = {
             CURRNT_PRICE: currentPrice,
             AVERAGE_PRICE: this.averageBuyPrice,
             TOTAL_AMOUNT: this.buyAmount,
             TOTAL_SPENT: this.totalSpent,
         }
+        console.log( h + ":" + m + ":" + s)
         console.table(data)
     }
 }
@@ -212,22 +215,25 @@ const config = {
     base: "USDT",
     clearanceSell: 0.08,
     clearanceBuy: 0.02,
-    tickInterval: 15000,
+    tickInterval: 40000,
     maxOrderByUSD: 10
 }
 
 const configUAH = {
-    asset: "BUSD",
+    asset: "USDT",
     base: "UAH",
-    clearanceSell: 0.2,
-    clearanceBuy: 0.15,
-    tickInterval: 15000,
+    clearanceSell: 0.4,
+    clearanceBuy: 0.25,
+    tickInterval: 120000,
     maxOrderByUSD: 10,
-    maxUsdToOrder: 10,
+    maxAssetOrderByUsd: 40,
 }
 
 const uahTrade = new BinanceTrader(configUAH, binanceClient)
 uahTrade.tick()
+
+const bswTrade = new BinanceTrader(config, binanceClient)
+bswTrade.tick()
 
 
 

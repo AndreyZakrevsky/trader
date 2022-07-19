@@ -1,7 +1,11 @@
-API_KEY= binance key
-API_SECRET= ninance sicret
+API_KEY_binance=MpMbalMjsftBgfwah77lax4wbeUJ520NUuXpbWOXD3jTUTRmgMjcowOFrA
+API_SECRET_binance=nM7HOIWfgfgWZUtBiqqDw5Q2UQMkYcj2zgfserlPVPeuNM2h1dJWQPjrCSdR5CHVaYWtsY
 
-XRP_COINGECO_URL=https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd
-TETHER_COINGECO_URL=https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd
+DB_URL=mongodb+srv://zakr:pass@cluster0.gdkbv.mongodb.net
+DB_NAME=trade
 
-NTBA_FIX_319=1
+
+API_KEY_gate=83ec557473d7ab19873735fasdwdssd
+API_SECRET_gate=ef618ktd4e3c58c4f4e97e11f84b476dc5291a2ff29sdsdgjj2sd
+
+
