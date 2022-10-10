@@ -234,6 +234,3 @@ uahTrade.tick()
 
 const bswTrade = new BinanceTrader(config, binanceClient)
 bswTrade.tick()
-
-
-
