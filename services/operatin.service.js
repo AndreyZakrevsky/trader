@@ -1,8 +1,8 @@
-const operation = require('../db/models/Operations')
+const operation = require('../db/models/Operations');
 
 class OperationService {
     constructor() {
-        this.operationModel = operation
+        this.operationModel = operation;
     }
 
     // pair, totalSpent, averageBuyPrice
@@ -11,41 +11,39 @@ class OperationService {
             const operation = new this.operationModel(params);
             await operation.save();
 
-            return { operation, success: true }
+            return { operation, success: true };
         } catch (e) {
-            return { message: e.message, success: false }
+            return { message: e.message, success: false };
         }
     }
 
     async get(pair) {
-        
         try {
-            const oparation = await this.operationModel.findOne({ pair }).select(["averageBuyPrice", "amount", "totalSpent"]).lean()
-          
-            return oparation ? { ...oparation, success: true } : { success: false }
+            const oparation = await this.operationModel.findOne({ pair }).select(['averageBuyPrice', 'amount', 'totalSpent']).lean();
+
+            return oparation ? { ...oparation, success: true } : { success: false };
         } catch (e) {
-            return { message: e.message, success: false }
+            return { message: e.message, success: false };
         }
     }
 
     async update({ pair, totalSpent, averageBuyPrice, amount }) {
         try {
-            const operation = await this.operationModel
-                .findOneAndUpdate({ pair }, { totalSpent, averageBuyPrice, amount, $inc: { bayCount: 1 } }, { new: true, upsert: true })
+            const operation = await this.operationModel.findOneAndUpdate({ pair }, { totalSpent, averageBuyPrice, amount, $inc: { bayCount: 1 } }, { new: true, upsert: true });
 
-            return { operation, success: true }
+            return { operation, success: true };
         } catch (e) {
-            return { message: e.message, success: false }
+            return { message: e.message, success: false };
         }
     }
 
     async reset(pair) {
         try {
-            const operation = await this.operationModel.findOneAndUpdate({ pair }, {amount: 0, totalSpent: 0, averageBuyPrice: 0,  $inc: { sellCount: 1 } })
+            const operation = await this.operationModel.findOneAndUpdate({ pair }, { amount: 0, totalSpent: 0, averageBuyPrice: 0, $inc: { sellCount: 1 } });
 
-            return { operation, success: true }
+            return { operation, success: true };
         } catch (e) {
-            return { message: e.message, success: false }
+            return { message: e.message, success: false };
         }
     }
 }
