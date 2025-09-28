@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "pm2 start index.js && pm2 logs",
-    "flush": "pm2 flush && pm2 delete all",
-    "stop": "pm2 stop index.js",
-    "delete": "pm2 delete index.js",
+    "start": "pm2 start index.js --name cctb && pm2 logs",
+    "stop": "pm2 stop cctb", 
+    "restart": "pm2 restart cctb",
+    "flush": "pm2 flush && pm2 delete cctb",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
