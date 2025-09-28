@@ -6,8 +6,8 @@ const config = {
     clearanceSell: 1.08,
     clearanceBuy: 0.96,
     tickInterval: 8000,
-
     maxOrderByBaseBalance: 10,
+    volume: 10,
 };
 
 const binanceTrader = new BinanceTrader(config);

@@ -9,6 +9,7 @@ export class BinanceTrader {
         this.configTrade = tradeConfig;
         this.clearanceSellPercent = tradeConfig.clearanceSell;
         this.clearanceBuyPercent = tradeConfig.clearanceBuy;
+        this.volume = tradeConfig.volume;
         this.binanceClient = new ccxt.binance({
             apiKey: process.env.API_KEY,
             secret: process.env.API_SECRET,
@@ -68,7 +69,7 @@ export class BinanceTrader {
                 await this._sell(amountToSell);
             }
         } else {
-            if (!baseBalance || new Big(baseBalance).lt(this.configTrade.maxOrderByBaseBalance)) {
+            if (!baseBalance || new Big(baseBalance).lt(this.volume)) {
                 this._notifyTelegram('Can not BUY, Empty base balance!!!');
                 return;
             }
@@ -127,7 +128,7 @@ export class BinanceTrader {
         let counterVolume = 0;
         let necessaryUsdVolume = 0;
 
-        while (necessaryUsdVolume < this.configTrade.maxOrderByBaseBalance) {
+        while (necessaryUsdVolume < this.volume) {
             counterVolume++;
             necessaryUsdVolume = necessaryUsdVolume + +marketPrice;
         }
@@ -209,6 +210,7 @@ Amount:  ${operationData.amount || 0}
 Fee:  ${operationData.fee || 0}
 Sell Percentage: ${this.clearanceSellPercent || 0}
 Buy Percentage: ${this.clearanceBuyPercent || 0}
+Step volume: ${this.volume}
 ================SELL CONDITION================
 Current market price  > ${expectedPriceToSell}  💵
 ================BUY CONDITION================
@@ -237,7 +239,11 @@ Current market price  < ${expectedPriceToBuy}  💵`;
         this.tg_bot.command('set', async (ctx) => {
             const text = ctx.message.text;
             const params = text.split(' ').slice(1);
-            const { buy = null, sell = null } = params.reduce((acc, param) => {
+            const {
+                buy = null,
+                sell = null,
+                volume = null,
+            } = params.reduce((acc, param) => {
                 const [key, value] = param.split('=');
                 acc[key] = value;
                 return acc;
@@ -245,8 +251,9 @@ Current market price  < ${expectedPriceToBuy}  💵`;
 
             this.clearanceSellPercent = sell || this.clearanceSellPercent;
             this.clearanceBuyPercent = buy || this.clearanceBuyPercent;
+            this.volume = volume || this.volume;
 
-            if (sell || buy) {
+            if (sell || buy || volume) {
                 this.isTrading = false;
                 ctx.reply('✅ You changed percentage, the bot is stopped. Run bot to start trading with new percentage.');
             }
