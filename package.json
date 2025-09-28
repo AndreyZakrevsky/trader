@@ -1,15 +1,15 @@
 {
-  "name": "CBTT",
+  "name": "CCBT",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "pm2 start index.js --name cctb && pm2 logs",
-    "stop": "pm2 stop cctb", 
-    "restart": "pm2 restart cctb",
-    "flush": "pm2 flush && pm2 delete cctb",
+    "start": "pm2 start index.js --name ccbt && pm2 logs",
+    "stop": "pm2 stop ccbt", 
+    "restart": "pm2 restart ccbt",
+    "flush": "pm2 flush && pm2 delete ccbt",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
