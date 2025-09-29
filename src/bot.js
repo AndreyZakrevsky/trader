@@ -218,7 +218,7 @@ Total spent:  ${operationData.totalSpent || 0}
 Amount:  ${operationData.amount || 0}
 Fee:  ${operationData.fee || 0}
 Sell: ${this.clearanceSellPercent || 0} %
-Buy origin|progressive: ${this.clearanceBuyPercent || 0}|${this.getProgressiveBuyPercent(this.totalSpent || 0, this.clearanceBuyPercent)} %
+Buy origin | progressive: ${this.clearanceBuyPercent || 0} | ${this.getProgressiveBuyPercent(this.totalSpent || 0, this.clearanceBuyPercent)} %
 Step volume: ${this.volume}
 
 SELL CONDITION (price): > ${expectedPriceToSell}
