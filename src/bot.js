@@ -213,8 +213,8 @@ Sell Percentage: ${this.clearanceSellPercent || 0}
 Buy Percentage: ${this.clearanceBuyPercent || 0}
 Step volume: ${this.volume}
 
-SELL CONDITION: current Market Price  > ${expectedPriceToSell}  💵
-BUY CONDITION: current Market Price  < ${expectedPriceToBuy}  💵
+SELL CONDITION: current price > ${expectedPriceToSell}  💵
+BUY CONDITION: current price < ${expectedPriceToBuy}  💵
 PROFIT: ${profit}`;
 
             ctx.reply(extendedInfo);
