@@ -75,7 +75,8 @@ export class BinanceTrader {
                 return;
             }
 
-            const clearanceBuyThreshold = new Big(this.averageBuyPrice).times(new Big(this.clearanceBuyPercent));
+            const clearanceBuyPercent = this.getProgressiveBuyPercent(this.totalSpent, this.clearanceBuyPercent);
+            const clearanceBuyThreshold = new Big(this.averageBuyPrice).times(new Big(clearanceBuyPercent));
             if (clearanceBuyThreshold.gte(this.currentMarketPrice)) {
                 await this._buy(minBuyVolume);
             }
@@ -101,6 +102,14 @@ export class BinanceTrader {
         } catch (e) {
             console.log('BUY || ', e.message);
         }
+    }
+
+    getProgressiveBuyPercent(total, clearanceBuyPercent = 0.97) {
+        const step = 0.02;
+        const totalStep = total < 0 ? 0 : total;
+        const buckets = Math.floor(totalStep / 100);
+        const percent = clearanceBuyPercent - step * buckets;
+        return Math.max(percent, 0);
     }
 
     async _getBaseBalance() {
@@ -208,8 +217,8 @@ Average Buy Price:  ${operationData.averageBayPrice}
 Total spent:  ${operationData.totalSpent || 0}
 Amount:  ${operationData.amount || 0}
 Fee:  ${operationData.fee || 0}
-Sell Percentage: ${this.clearanceSellPercent || 0}
-Buy Percentage: ${this.clearanceBuyPercent || 0}
+Sell: ${this.clearanceSellPercent || 0} %
+Buy origin|progressive: ${this.clearanceBuyPercent || 0}|${this.getProgressiveBuyPercent(this.totalSpent || 0, this.clearanceBuyPercent)} %
 Step volume: ${this.volume}
 
 SELL CONDITION (price): > ${expectedPriceToSell}
