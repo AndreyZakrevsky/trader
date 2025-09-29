@@ -199,6 +199,7 @@ export class BinanceTrader {
             const operationData = await this.dbService.getData();
             const expectedPriceToSell = new Big(this.averageBuyPrice).times(new Big(this.clearanceSellPercent));
             const expectedPriceToBuy = new Big(this.averageBuyPrice).times(new Big(this.clearanceBuyPercent));
+            const profit = new Big(expectedPriceToSell).times(new Big(operationData.amount)).minus(operationData.totalSpent);
 
             const extendedInfo = `
 Status:   ${this.isTrading ? '✅ Running' : '🛑 Stopped'}
@@ -211,10 +212,10 @@ Fee:  ${operationData.fee || 0}
 Sell Percentage: ${this.clearanceSellPercent || 0}
 Buy Percentage: ${this.clearanceBuyPercent || 0}
 Step volume: ${this.volume}
-================SELL CONDITION================
-Current market price  > ${expectedPriceToSell}  💵
-================BUY CONDITION================
-Current market price  < ${expectedPriceToBuy}  💵`;
+
+SELL CONDITION: current Market Price  > ${expectedPriceToSell}  💵
+BUY CONDITION: current Market Price  < ${expectedPriceToBuy}  💵
+PROFIT: ${profit}`;
 
             ctx.reply(extendedInfo);
         });
