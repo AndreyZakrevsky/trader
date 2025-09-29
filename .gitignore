@@ -6,3 +6,5 @@ node_modules
 localDB.json
 
 db
+
+ecosystem.config.cjs

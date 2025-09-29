@@ -1,12 +1,13 @@
+import 'dotenv/config';
 import { BinanceTrader } from './src/bot.js';
 
 const config = {
-    asset: 'FF',
-    base: 'USDT',
-    clearanceSell: 1.02,
-    clearanceBuy: 0.96,
-    tickInterval: 5000,
-    volume: 10,
+    asset: process.env.ASSET,
+    base: process.env.BASE,
+    clearanceSell: process.env.SELL_PERCENT,
+    clearanceBuy: process.env.BUY_PERCENT,
+    tickInterval: process.env.TICK_INTERVAL,
+    volume: process.env.VOLUME,
 };
 
 const binanceTrader = new BinanceTrader(config);
