@@ -3,7 +3,7 @@ import { BinanceTrader } from './src/bot.js';
 const config = {
     asset: 'MIRA',
     base: 'USDT',
-    clearanceSell: 1.08,
+    clearanceSell: 1.02,
     clearanceBuy: 0.96,
     tickInterval: 8000,
     maxOrderByBaseBalance: 10,

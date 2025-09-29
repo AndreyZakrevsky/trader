@@ -197,12 +197,19 @@ export class BinanceTrader {
 
         this.tg_bot.hears('Status', async (ctx) => {
             const operationData = await this.dbService.getData();
-            const expectedPriceToSell = new Big(this.averageBuyPrice).times(new Big(this.clearanceSellPercent));
-            const expectedPriceToBuy = new Big(this.averageBuyPrice).times(new Big(this.clearanceBuyPercent));
+            const expectedPriceToSell = new Big(this.averageBuyPrice).times(new Big(this.clearanceSellPercent)).round(8);
+            const expectedPriceToBuy = new Big(this.averageBuyPrice).times(new Big(this.clearanceBuyPercent)).round(8);
             const profit = new Big(expectedPriceToSell)
                 .times(new Big(operationData.amount))
                 .minus(operationData.totalSpent)
-                .minus(operationData?.fee * 2 || 0);
+                .minus(operationData?.fee * 2 || 0)
+                .round(8);
+
+            const profitCurrent = new Big(this.currentMarketPrice)
+                .times(new Big(operationData.amount))
+                .minus(operationData.totalSpent)
+                .minus(operationData?.fee * 2 || 0)
+                .round(8);
 
             const extendedInfo = `
 Status:   ${this.isTrading ? '✅ Running' : '🛑 Stopped'}
@@ -216,9 +223,10 @@ Sell Percentage: ${this.clearanceSellPercent || 0}
 Buy Percentage: ${this.clearanceBuyPercent || 0}
 Step volume: ${this.volume}
 
-SELL CONDITION (price): > ${expectedPriceToSell}  💵
-BUY CONDITION (price): < ${expectedPriceToBuy}  💵
-PROFIT: ${profit}  💵`;
+SELL CONDITION (price): > ${expectedPriceToSell}
+BUY CONDITION (price): < ${expectedPriceToBuy}
+EXPECTED PROFIT:  ${profit}
+CURRENT PROFIT:  ${profitCurrent}`;
 
             ctx.reply(extendedInfo);
         });
