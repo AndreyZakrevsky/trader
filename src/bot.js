@@ -61,7 +61,7 @@ export class BinanceTrader {
 
         if (priceDifference.gt(0)) {
             if (!assetBalance) {
-                this._notifyTelegram('Can not SELL, Empty base balance!!!');
+                console.log('Can not SELL, Empty base balance!!!');
                 return;
             }
             const clearanceSellThreshold = new Big(this.averageBuyPrice).times(new Big(this.clearanceSellPercent));
@@ -71,7 +71,7 @@ export class BinanceTrader {
             }
         } else {
             if (!baseBalance || new Big(baseBalance).lt(this.volume)) {
-                this._notifyTelegram('Can not BUY, Empty base balance!!!');
+                console.log('Can not BUY, Empty base balance!!!');
                 return;
             }
 
@@ -150,18 +150,6 @@ export class BinanceTrader {
 
     _sleep(time) {
         return new Promise((resolve) => setTimeout(resolve, time));
-    }
-
-    async _notifyTelegram(message) {
-        try {
-            const chatId = process.env.TG_CHAT_ID;
-            if (!chatId) return;
-
-            await this.tg_bot.telegram.sendMessage(chatId, message);
-            console.log(message);
-        } catch (e) {
-            console.log(`Telegram notification failed: ${e.message}`);
-        }
     }
 
     _setupBotInterface() {
