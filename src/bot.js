@@ -7,6 +7,7 @@ import Big from 'big.js';
 export class BinanceTrader {
     constructor(tradeConfig) {
         this.configTrade = tradeConfig;
+        this.market = `${tradeConfig.asset}/${tradeConfig.base}`;
         this.clearanceSellPercent = tradeConfig.clearanceSell;
         this.clearanceBuyPercent = tradeConfig.clearanceBuy;
         this.volume = tradeConfig.volume;
@@ -14,8 +15,8 @@ export class BinanceTrader {
             apiKey: process.env.API_KEY,
             secret: process.env.API_SECRET,
         });
-        this.dbService = new DatabaseLocal();
-        this.market = `${tradeConfig.asset}/${tradeConfig.base}`;
+
+        this.dbService = new DatabaseLocal(tradeConfig.asset);
         this.isCryptoTrading = !Boolean(tradeConfig.maxAssetOrderByUsd);
         this.averageBuyPrice = 0;
         this.buyAmount = 0;
