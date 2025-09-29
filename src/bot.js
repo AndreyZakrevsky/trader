@@ -215,7 +215,7 @@ Step volume: ${this.volume}
 
 SELL CONDITION: current price > ${expectedPriceToSell}  💵
 BUY CONDITION: current price < ${expectedPriceToBuy}  💵
-PROFIT: ${profit}`;
+PROFIT: ${profit}  💵`;
 
             ctx.reply(extendedInfo);
         });
