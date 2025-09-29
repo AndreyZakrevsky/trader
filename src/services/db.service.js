@@ -46,7 +46,7 @@ export class DatabaseLocal {
         this.db.data.operationData.amount = newAmount.toNumber();
         this.db.data.operationData.fee = newFee.toNumber();
 
-        this.db.data.operationData.averageBayPrice = newAmount.gt(0) ? newTotalSpent.div(newAmount).toNumber().round(8) : 0;
+        this.db.data.operationData.averageBayPrice = newAmount.gt(0) ? newTotalSpent.div(newAmount).toNumber() : 0;
 
         await this.db.write();
     }
