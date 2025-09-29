@@ -212,14 +212,15 @@ export class BinanceTrader {
             const extendedInfo = `
 Status:   ${this.isTrading ? '✅ Running' : '🛑 Stopped'}
 Market:   ${this.market}
-Current Market Price:  ${this.currentMarketPrice || 0}
-Average Buy Price:  ${operationData.averageBayPrice}
+Current market price:  ${this.currentMarketPrice || 0}
+Average buy price:  ${operationData.averageBayPrice}
 Total spent:  ${operationData.totalSpent || 0}
 Amount:  ${operationData.amount || 0}
 Fee:  ${operationData.fee || 0}
 Sell: ${this.clearanceSellPercent || 0} %
-Buy origin | progressive: ${this.clearanceBuyPercent || 0} | ${this.getProgressiveBuyPercent(this.totalSpent || 0, this.clearanceBuyPercent)} %
-Step volume: ${this.volume}
+Buy origin: ${this.clearanceBuyPercent || 0}  %
+Buy progressive: ${this.getProgressiveBuyPercent(this.totalSpent || 0, this.clearanceBuyPercent)} %
+Step in base: ${this.volume}
 
 SELL CONDITION (price): > ${expectedPriceToSell}
 BUY CONDITION (price): < ${expectedPriceToBuy}
