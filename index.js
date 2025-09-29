@@ -1,7 +1,7 @@
 import { BinanceTrader } from './src/bot.js';
 
 const config = {
-    asset: 'MIRA',
+    asset: 'FF',
     base: 'USDT',
     clearanceSell: 1.02,
     clearanceBuy: 0.96,
