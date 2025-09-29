@@ -25,7 +25,7 @@ export class DatabaseLocal {
     async _initialize() {
         try {
             await this.db.read();
-            if (!this.db.data) {
+            if (!this.db?.data?.operationData) {
                 console.log('DB is empty, initializing default values.');
                 await this._initDefault();
             }
