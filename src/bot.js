@@ -105,7 +105,7 @@ export class BinanceTrader {
     }
 
     getProgressiveBuyPercent(total, clearanceBuyPercent = 0.97) {
-        const step = 0.02;
+        const step = 0.03;
         const totalStep = total < 0 ? 0 : total;
         const buckets = Math.floor(totalStep / 100);
         const percent = clearanceBuyPercent - step * buckets;
