@@ -196,7 +196,7 @@ export class BinanceTrader {
         this.tg_bot.hears('Status', async (ctx) => {
             const operationData = await this.dbService.getData();
             const expectedPriceToSell = new Big(this.averageBuyPrice).times(new Big(this.clearanceSellPercent)).round(8);
-            const expectedPriceToBuy = new Big(this.averageBuyPrice).times(new Big(this.clearanceBuyPercent)).round(8);
+            const expectedPriceToBuy = new Big(this.averageBuyPrice).times(new Big(this.getProgressiveBuyPercent(this.totalSpent || 0, this.clearanceBuyPercent))).round(8);
             const profit = new Big(expectedPriceToSell)
                 .times(new Big(operationData.amount))
                 .minus(operationData.totalSpent)
