@@ -98,7 +98,7 @@ export class BinanceTrader {
         try {
             const { status, fee, price } = await this.binanceClient.createMarketBuyOrder(this.market, amount);
 
-            if (status === 'closed') return await this.dbService.setData(amount, price, fee.cost || 0);
+            if (status === 'closed') return await this.dbService.setData(amount, price, fee?.cost || 0);
         } catch (e) {
             console.log('BUY || ', e.message);
         }
