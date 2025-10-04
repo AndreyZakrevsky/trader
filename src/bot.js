@@ -212,21 +212,18 @@ export class BinanceTrader {
                 .round(8);
 
             const extendedInfo = `
-Status:   ${this.isTrading ? '✅ Running' : '🛑 Stopped'}
-Market:   ${this.market}
-Current market price:  ${this.currentMarketPrice || 0}
-Average buy price:  ${operationData.averageBayPrice}
-Total spent:  ${operationData.totalSpent || 0}
+Status ${this.market}:   ${this.isTrading ? '✅ Running' : '🛑 Stopped'}
+Current market price (USDT):  ${this.currentMarketPrice || 0}
+Average buy price (USDT):  ${operationData.averageBayPrice}
+Total spent (USDT):  ${operationData.totalSpent || 0}
 Amount:  ${operationData.amount || 0}
 Fee:  ${operationData.fee || 0}
-Sell: ${this.clearanceSellPercent || 0} %
-Buy origin: ${this.clearanceBuyPercent || 0}  %
-Buy progressive: ${this.getProgressiveBuyPercent(this.totalSpent || 0, this.clearanceBuyPercent)} %
-Step in base: ${this.volume}
-Max Volume: ${this.maxVolume}
+Buy: ${this.clearanceSellPercent || 0}  | ${this.getProgressiveBuyPercent(this.totalSpent || 0, this.clearanceBuyPercent)} %
+Step in (USDT): ${this.volume}
+Max volume (USDT): ${this.maxVolume}
 
-SELL CONDITION (price): > ${expectedPriceToSell}
-BUY CONDITION (price): < ${expectedPriceToBuy}
+SELL CONDITION: > ${expectedPriceToSell}
+BUY CONDITION: < ${expectedPriceToBuy}
 EXPECTED PROFIT:  ${profit}
 CURRENT PROFIT:  ${profitCurrent}`;
 
