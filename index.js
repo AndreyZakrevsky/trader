@@ -8,6 +8,7 @@ const config = {
     clearanceBuy: process.env.BUY_PERCENT,
     tickInterval: process.env.TICK_INTERVAL,
     volume: process.env.VOLUME,
+    maxVolume: process.env.MAX_VOLUME,
 };
 
 const binanceTrader = new BinanceTrader(config);

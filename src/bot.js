@@ -8,9 +8,10 @@ export class BinanceTrader {
     constructor(tradeConfig) {
         this.configTrade = tradeConfig;
         this.market = `${tradeConfig.asset}/${tradeConfig.base}`;
-        this.clearanceSellPercent = tradeConfig.clearanceSell;
-        this.clearanceBuyPercent = tradeConfig.clearanceBuy;
-        this.volume = tradeConfig.volume;
+        this.clearanceSellPercent = Number(tradeConfig.clearanceSell);
+        this.clearanceBuyPercent = Number(tradeConfig.clearanceBuy);
+        this.maxVolume = Number(tradeConfig.maxVolume);
+        this.volume = Number(tradeConfig.volume);
         this.binanceClient = new ccxt.binance({
             apiKey: process.env.API_KEY,
             secret: process.env.API_SECRET,
@@ -70,13 +71,14 @@ export class BinanceTrader {
                 await this._sell(amountToSell);
             }
         } else {
-            if (!baseBalance || new Big(baseBalance).lt(this.volume)) {
-                console.log('Can not BUY, Empty base balance!!!');
+            if (!baseBalance || new Big(baseBalance).lt(this.volume) || this.maxVolume < this.buyAmount) {
+                console.log('Can not BUY, Empty base balance, or limit reached!');
                 return;
             }
 
             const clearanceBuyPercent = this.getProgressiveBuyPercent(this.totalSpent, this.clearanceBuyPercent);
             const clearanceBuyThreshold = new Big(this.averageBuyPrice).times(new Big(clearanceBuyPercent));
+
             if (clearanceBuyThreshold.gte(this.currentMarketPrice)) {
                 await this._buy(minBuyVolume);
             }
@@ -105,7 +107,7 @@ export class BinanceTrader {
     }
 
     getProgressiveBuyPercent(total, clearanceBuyPercent = 0.97) {
-        const step = 0.03;
+        const step = 0.05;
         const totalStep = total < 0 ? 0 : total;
         const buckets = Math.floor(totalStep / 100);
         const percent = clearanceBuyPercent - step * buckets;
@@ -221,6 +223,7 @@ Sell: ${this.clearanceSellPercent || 0} %
 Buy origin: ${this.clearanceBuyPercent || 0}  %
 Buy progressive: ${this.getProgressiveBuyPercent(this.totalSpent || 0, this.clearanceBuyPercent)} %
 Step in base: ${this.volume}
+Max Volume: ${this.maxVolume}
 
 SELL CONDITION (price): > ${expectedPriceToSell}
 BUY CONDITION (price): < ${expectedPriceToBuy}
@@ -254,17 +257,19 @@ CURRENT PROFIT:  ${profitCurrent}`;
                 buy = null,
                 sell = null,
                 volume = null,
+                max_volume = null,
             } = params.reduce((acc, param) => {
                 const [key, value] = param.split('=');
                 acc[key] = value;
                 return acc;
             }, {});
 
-            this.clearanceSellPercent = sell || this.clearanceSellPercent;
-            this.clearanceBuyPercent = buy || this.clearanceBuyPercent;
-            this.volume = volume || this.volume;
+            this.clearanceSellPercent = Number(sell) || this.clearanceSellPercent;
+            this.clearanceBuyPercent = Number(buy) || this.clearanceBuyPercent;
+            this.volume = Number(volume) || this.volume;
+            this.maxVolume = Number(max_volume) || this.maxVolume;
 
-            if (sell || buy || volume) {
+            if (sell || buy || volume || max_volume) {
                 this.isTrading = false;
                 ctx.reply('✅ You changed percentage, the bot is stopped. Run bot to start trading with new percentage.');
             }
