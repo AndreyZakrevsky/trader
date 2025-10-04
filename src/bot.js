@@ -218,7 +218,8 @@ Average buy price (USDT):  ${operationData.averageBayPrice}
 Total spent (USDT):  ${operationData.totalSpent || 0}
 Amount:  ${operationData.amount || 0}
 Fee:  ${operationData.fee || 0}
-Buy: ${this.clearanceSellPercent || 0}  | ${this.getProgressiveBuyPercent(this.totalSpent || 0, this.clearanceBuyPercent)} %
+Sell: ${this.clearanceSellPercent || 0} %
+Buy:  ${this.getProgressiveBuyPercent(this.totalSpent || 0, this.clearanceBuyPercent)} %
 Step in (USDT): ${this.volume}
 Max volume (USDT): ${this.maxVolume}
 
